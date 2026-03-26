@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import io
 import os
+import uuid
 
 class HttpUploadAny:
     @classmethod
@@ -35,7 +36,8 @@ class HttpUploadAny:
             buf = io.BytesIO()
             pil_img.save(buf, format="PNG")
             buf.seek(0)
-            files = {"file": ("output.png", buf, "image/png")}
+            filename = f"{uuid.uuid4().hex}.png"
+            files = {"file": (filename, buf, "image/png")}
 
         # File path (video/audio save node se)
         elif file_path and os.path.exists(file_path):
@@ -60,7 +62,8 @@ class HttpUploadAny:
             sample_rate = audio["sample_rate"]
             torchaudio.save(buf, waveform, sample_rate, format="wav")
             buf.seek(0)
-            files = {"file": ("output.wav", buf, "audio/wav")}
+            filename = f"{uuid.uuid4().hex}.wav"
+            files = {"file": (filename, buf, "audio/wav")}
 
         else:
             print("[HttpUpload] ❌ Kuch connect nahi kiya")
