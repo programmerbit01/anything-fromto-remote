@@ -11,11 +11,12 @@ class HttpUploadAny:
         return {
             "required": {
                 "upload_url": ("STRING", {"default": "http://localhost:8188/api/v1/upload_file"}),
+                "filename":   ("STRING", {"default": ""}),  # blank = auto UUID
             },
             "optional": {
-                "image":     ("IMAGE",),       # image tensor se connect karo
-                "file_path": ("STRING", {"forceInput": True}),  # video/audio path se connect karo
-                "audio":     ("AUDIO",),       # audio tensor se connect karo
+                "image":     ("IMAGE",),
+                "file_path": ("STRING", {"forceInput": True}),
+                "audio":     ("AUDIO",),
             }
         }
 
@@ -25,7 +26,7 @@ class HttpUploadAny:
     CATEGORY = "utils/upload"
     OUTPUT_NODE = True
 
-    def upload(self, upload_url, image=None, file_path=None, audio=None):
+    def upload(self, upload_url, filename="", image=None, file_path=None, audio=None):
 
         files = None
 
@@ -36,8 +37,9 @@ class HttpUploadAny:
             buf = io.BytesIO()
             pil_img.save(buf, format="PNG")
             buf.seek(0)
-            filename = f"{uuid.uuid4().hex}.png"
-            files = {"file": (filename, buf, "image/png")}
+            fname = filename if filename.strip() else f"{uuid.uuid4().hex}.png"
+            if fname and "." not in fname: fname += ".png"
+            files = {"file": (fname, buf, "image/png")}
 
         # File path (video/audio save node se)
         elif file_path and os.path.exists(file_path):
@@ -62,8 +64,9 @@ class HttpUploadAny:
             sample_rate = audio["sample_rate"]
             torchaudio.save(buf, waveform, sample_rate, format="wav")
             buf.seek(0)
-            filename = f"{uuid.uuid4().hex}.wav"
-            files = {"file": (filename, buf, "audio/wav")}
+            fname = filename if filename.strip() else f"{uuid.uuid4().hex}.wav"
+            if fname and "." not in fname: fname += ".wav"
+            files = {"file": (fname, buf, "audio/wav")}
 
         else:
             print("[HttpUpload] ❌ Kuch connect nahi kiya")
